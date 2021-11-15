@@ -13,11 +13,6 @@ labels = []
 processes =[]
 processes_states = []
 
-for i in range(555):
-    processes.append("ps"+str(i))
-
-processes[0]="test_name"
-processes[1] = "class"
 
 def read_json():
 
@@ -38,7 +33,7 @@ def read_json():
         fields.append(i)
         labels.append(data["events"]["PAPI_TOT_INS"][i]["label"])
         #print(labels.append(data["events"]["PAPI_TOT_INS"][i]["label"]))
-        processes_states.append(data["events"]["PAPI_TOT_INS"][i]["data"])
+        processes_states.append(data["events"]["PAPI_TOT_INS"][i]["data"][:555])
 
     # print(fields)
     # print(labels)
@@ -48,10 +43,20 @@ def read_json():
     f.close()
 read_json()
 
+for i in range(555):
+    processes.append("ps"+str(i))
+    #processes_states = processes_states[:555]
 for i in range(len(fields)):
     processes_states[i].insert(0,fields[i])
     processes_states[i].insert(1,labels[i])
     #print(labels[i])
+
+
+
+processes[0]="test_name"
+processes[1] = "class"
+
+
 #print(processes_states[0][1])
 def create_csv():
     with open('cpu_states.csv', 'w') as f:
