@@ -65,3 +65,4 @@ def create_csv():
         write.writerow(processes)
         write.writerows(processes_states)
 create_csv()
+print(processes)
