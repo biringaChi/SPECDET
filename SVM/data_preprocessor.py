@@ -19,7 +19,8 @@ def read_json():
     # Python program to read
     # json file
     # Opening JSON file
-    f = open('dataset_100ms.json',)
+    json_file = 'datasets/cpu_processes/dataset_100ms.json'
+    f = open(json_file,)
 
     
     # returns JSON object as
@@ -59,7 +60,7 @@ processes[1] = "class"
 
 #print(processes_states[0][1])
 def create_csv():
-    with open('cpu_states.csv', 'w') as f:
+    with open('datasets/cpu_processes/cpu_states.csv', 'w') as f:
     # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(processes)
