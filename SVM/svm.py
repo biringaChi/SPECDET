@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-dataset=pd.read_csv('cpu_states.csv')
+csv_file = 'datasets/cpu_processes/cpu_states.csv'
+
+
+dataset=pd.read_csv(csv_file)
 #dataset = dataset[(dataset.T != 0).any()]
-spectre_attack_df = dataset[dataset['class']==1]
-no_spectre_attack_df = dataset[dataset['class']==0]
+spectre_attack_df = dataset[dataset['class']=="M"]
+no_spectre_attack_df = dataset[dataset['class']=="B"]
 #help(spectre_attack_df.plot)
 axes = no_spectre_attack_df.plot(kind='scatter', x='ps2', y='ps3', color='blue', label='no spectre')
 spectre_attack_df.plot(kind='scatter', x='ps2', y='ps3', color='red', label='spectre attack', ax=axes)
