@@ -1,1 +1,3 @@
 torch
+gensim
+numpy

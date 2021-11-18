@@ -144,7 +144,8 @@ spectre_train
 spectre_test
 benign_train_temp
 spectre_train_temp
+training.wordvectors
+testing.wordvectors
 
 scratch.ipynb
 .ipynb_checkpoints
-SpecDect_copy
