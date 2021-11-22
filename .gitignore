@@ -144,8 +144,12 @@ spectre_train
 spectre_test
 benign_train_temp
 spectre_train_temp
-training.wordvectors
-testing.wordvectors
 
+# notebook
 scratch.ipynb
 .ipynb_checkpoints
+
+# Vectors
+*.wordvectors
+*.npy
+*.csv
