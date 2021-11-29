@@ -145,6 +145,11 @@ spectre_test
 benign_train_temp
 spectre_train_temp
 
+# notebook
 scratch.ipynb
 .ipynb_checkpoints
-SpecDect_copy
+
+# Vectors
+*.wordvectors
+*.npy
+*.csv
