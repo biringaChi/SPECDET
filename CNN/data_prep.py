@@ -120,7 +120,7 @@ class Embedding(DataTransform):
 	def model(self, data, vec_name) -> None:
 		vec = Word2Vec(sentences = data, min_count = 1, vector_size = 32).wv
 		vec.save(os.getcwd() + "/CNN/" + vec_name)
-	
+
 	def generator(self, vec, data) -> List[List[float]]:
 		vec_dict = {}
 		model = KeyedVectors.load(os.getcwd() + "/CNN/" + vec, mmap = "r")
@@ -129,11 +129,10 @@ class Embedding(DataTransform):
 		node_vecs = []
 		for node_vec in data:
 			temp = []
-			if node_vec is not None:
-				for node in node_vec:
-					if node in vec_dict:
-						temp.append(vec_dict.get(node))
-			node_vecs.append(temp)
+			for node in node_vec:
+				if node in vec_dict:
+					temp.append(vec_dict.get(node))
+		node_vecs.append(temp)
 		return node_vecs
 
 	def flatten(self, data) -> List[float]:
@@ -220,7 +219,3 @@ class DataSample60K(Embedding):
 				targets.append("spectre")
 			else: targets.append("benign")
 		return self.encoder(targets)
-
-
-# if __name__ == "__main__":
-# 	DataSample60K().process_dataset()
