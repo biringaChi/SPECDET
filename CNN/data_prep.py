@@ -174,7 +174,7 @@ class Embedding(DataTransform):
 	def testing(self):
 		return self.upsample(self.flatten(self.generator("testing.wordvectors", self.benign_spectre_test())))
 
-class DataSample60K(Embedding):
+class Embedding2(Embedding):
 	"""Samples 60,000 Observations - (50K training and validation + 10K testing)"""
 	def __init__(self) -> None:
 		super().__init__()
