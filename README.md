@@ -1,2 +1,2 @@
 # SpecDet
-SpecDet: An ML system for Detecting Spectre Attacks Using CPU Processes States and Spectre Gadgets
+SpecDet: Detecting Spectre Attacks through CPU Processes State and Spectre Gadgets 

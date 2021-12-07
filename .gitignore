@@ -153,3 +153,7 @@ scratch.ipynb
 *.wordvectors
 *.npy
 *.csv
+
+# Exp
+model_exp.py
+generated_vec.pickle 

@@ -1,5 +1,8 @@
 import os
+import shutil
 import csv
+import pickle
+from gensim import models
 import numpy as np
 from gensim.models import Word2Vec, KeyedVectors
 from typing import Dict, List, Sequence, Set, Text, Tuple, Union
@@ -87,12 +90,19 @@ class DataTransform(HandleSpectreBenignData):
 			out.append(" ".join(temp))
 		return out
 	
-	def encoder(self, data) -> List[int]:
+	def encoder(self, data_sample, sample_val, data = None) -> List[int]:
 		out = []
-		for target in data:
-			if target == "benign":
-				out.append(0)
-			else: out.append(1)
+
+		if data is not None:
+			for target in data:
+				if target == "benign":
+					out.append(0)
+				else: out.append(1)
+		else: 
+			for idx, _ in enumerate(data_sample):
+				if idx < sample_val:
+					out.append(0)
+				else: out.append(1) 
 		return out
 
 	def benign_spectre_train(self) -> List[List[str]]:
@@ -131,8 +141,8 @@ class Embedding(DataTransform):
 			temp = []
 			for node in node_vec:
 				if node in vec_dict:
-					temp.append(vec_dict.get(node))
-		node_vecs.append(temp)
+					temp.append(vec_dict[node])
+			node_vecs.append(temp)
 		return node_vecs
 
 	def flatten(self, data) -> List[float]:
@@ -159,63 +169,67 @@ class Embedding(DataTransform):
 		return out
 	
 	def training(self):
-		"""
-		Main training method to generate 957,673(training) embedding vectors
-		-- Problem --> Significantly large file, floods memory.
-		"""
 		return self.upsample(self.flatten(self.generator("training.wordvectors", self.benign_spectre_train())))
 
 	def testing(self):
-		"""
-		Main testing method to generate 957,673(testing) embedding vectors
-		-- Problem --> Same with training method above
-		"""
 		return self.upsample(self.flatten(self.generator("testing.wordvectors", self.benign_spectre_test())))
 
 class DataSample60K(Embedding):
-	"""Samples 60,000 Observations - (50K training and 10K testing)"""
+	"""Samples 60,000 Observations - (50K training and validation + 10K testing)"""
 	def __init__(self) -> None:
 		super().__init__()
-		self.SPECTRE_TRAIN_SAMPLE = 48_419
-		self.SPECTRE_TEST_SAMPLE = 9_604
+		self.BENIGN_NUM = 1481
+		self.BENIGN_NUM_VAL = 100
+		self.SPECTRE_NUM = 47519
+		self.SAMPLE = 1000
+		self.VECTORS = "benign_spectre_train_50K.wordvectors"
 	
-	def sample_train(self):
-		spectre_train_sample = self.spectre_train()[:self.SPECTRE_TRAIN_SAMPLE]
-		benign_spectre_train_50K = spectre_train_sample + self.benign_train()
-		return [data.split() for data in self.wrangle(benign_spectre_train_50K)]
-	
-	def store_data(self):
-		_file_path: str = os.getcwd() + "/CNN/data/benign_spectre_train_50K.csv"
-		os.makedirs(os.path.dirname(_file_path), exist_ok = True)
-		try:
-			with open(_file_path, "w") as file:
-				with file:
-					write = csv.writer(file)
-					write.writerows(self.sample_train())
-		except OSError as e:
-			raise e
-	
-	def model(self):
-		return self.model(self.sample_train(), "benign_spectre_train_50K.wordvectors")
-
-	def training_sample(self) -> List[List[float]]:
-		out = self.upsample(self.flatten(self.generator("benign_spectre_train_50K.wordvectors", self.sample_train())))
-		return out
-	
-	def process_dataset(self) -> None:
-		_file_name = "processed_bst_50K.csv"
-		try:
-			with open(_file_name, "w") as file:
-				with file:
-					write = csv.writer(file)
-					write.writerows(self.training_sample())
-		except OSError as e:
-			raise e
-		
-	def get_targets_train(self) -> List[int]:
+	def get_targets(self, data, split_val) -> List[int]:
 		targets = []
-		for idx, _ in enumerate(self.sample_train()):
-			if idx <= self.SPECTRE_TRAIN_SAMPLE:
+		for idx, _ in enumerate(data):
+			if idx <= split_val:
 				targets.append("spectre")
 			else: targets.append("benign")
 		return self.encoder(targets)
+	
+	def pickle_save(self, data, file_name):
+		with open(file_name, 'wb') as file:
+			pickle.dump(data, file)
+
+	def pickle_load(self, data):
+		with open(data, "rb") as file:
+			loaded = pickle.load(file)
+		return loaded
+	
+	def train_val_set(self) -> Tuple[List[float], List[float]]:
+		out_train, out_val = ([] for _ in range(2))
+		training_set = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
+		validation_set = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
+
+		for data_train, data_val in zip(training_set, validation_set):
+			if len(data_train) > self.SAMPLE:
+				out_train.append(data_train[:self.SAMPLE])
+			elif len(data_train) <= self.SAMPLE:
+				out_train.append(data_train)
+			if len(data_val) > self.SAMPLE:
+				out_val.append(data_val[:self.SAMPLE])
+			elif len(data_val) <= self.SAMPLE:
+				out_val.append(data_val)
+		
+		self.model(out_train, "training_set_vectors.wordvectors")
+		self.model(out_val, "validation_set_vectors.wordvectors")
+		
+		self.pickle_save(out_train,"training_set.pickle")
+		self.pickle_save(out_val,"validation_set.pickle")
+
+		self.pickle_save(self.encoder(out_train, self.BENIGN_NUM),"training_set_labels.pickle")
+		self.pickle_save(self.encoder(out_val, self.BENIGN_NUM_VAL),"validation_set_labels.pickle")
+
+		training_embedding = self.generator(self.pickle_load("training_set_vectors.wordvectors"), out_train)
+		validation_embedding = self.generator(self.pickle_load("validation_set_vectors.wordvectors"), out_val)
+
+		self.pickle_save(training_embedding,"training_embedding.pickle")
+		self.pickle_save(validation_embedding,"validation_embedding.pickle")
+
+	def test_set(self):
+		pass
