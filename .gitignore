@@ -146,7 +146,7 @@ benign_train_temp
 spectre_train_temp
 
 # notebook
-scratch.ipynb
+*.ipynb
 .ipynb_checkpoints
 
 # Vectors
@@ -157,3 +157,5 @@ scratch.ipynb
 # Exp
 model_exp.py
 generated_vec.pickle 
+training_embedding_padded.pickle
+validation_embedding.pickle

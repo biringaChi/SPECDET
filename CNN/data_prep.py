@@ -175,7 +175,12 @@ class Embedding(DataTransform):
 		return self.upsample(self.flatten(self.generator("testing.wordvectors", self.benign_spectre_test())))
 
 class Embedding2(Embedding):
-	"""Samples 60,000 Observations - (50K training and validation + 10K testing)"""
+	"""
+	Samples 60,000 Observations
+	50,000 Training
+	10,000 Validation
+	10,000 Testing
+	"""
 	def __init__(self) -> None:
 		super().__init__()
 		self.BENIGN_NUM = 1481
@@ -207,20 +212,20 @@ class Embedding2(Embedding):
 		validation_set = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
 
 		for data_train, data_val in zip(training_set, validation_set):
-			if len(data_train) > self.SAMPLE:
+			if self.__len__(data_train) > self.SAMPLE:
 				out_train.append(data_train[:self.SAMPLE])
-			elif len(data_train) <= self.SAMPLE:
+			elif self.__len__(data_train) <= self.SAMPLE:
 				out_train.append(data_train)
-			if len(data_val) > self.SAMPLE:
+			if self.__len__(data_val) > self.SAMPLE:
 				out_val.append(data_val[:self.SAMPLE])
-			elif len(data_val) <= self.SAMPLE:
+			elif self.__len__(data_val) <= self.SAMPLE:
 				out_val.append(data_val)
 		
 		self.model(out_train, "training_set_vectors.wordvectors")
 		self.model(out_val, "validation_set_vectors.wordvectors")
 		
-		self.pickle_save(out_train,"training_set.pickle")
-		self.pickle_save(out_val,"validation_set.pickle")
+		self.pickle_save(out_train, "training_set.pickle")
+		self.pickle_save(out_val, "validation_set.pickle")
 
 		self.pickle_save(self.encoder(out_train, self.BENIGN_NUM),"training_set_labels.pickle")
 		self.pickle_save(self.encoder(out_val, self.BENIGN_NUM_VAL),"validation_set_labels.pickle")
@@ -230,6 +235,3 @@ class Embedding2(Embedding):
 
 		self.pickle_save(training_embedding,"training_embedding.pickle")
 		self.pickle_save(validation_embedding,"validation_embedding.pickle")
-
-	def test_set(self):
-		pass
