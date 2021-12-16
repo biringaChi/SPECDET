@@ -1,6 +1,4 @@
 import os
-import shutil
-import csv
 import pickle
 from gensim import models
 import numpy as np
@@ -161,7 +159,7 @@ class Embedding(DataTransform):
 		for sublist in data: 
 			if not sublist:
 				out.append(np.zeros(max_length).tolist())
-			elif len(sublist) < max_length:
+			elif self.__len__(sublist) < max_length:
 				sublist.extend(np.zeros(max_length - self.__len__(sublist)))
 				out.append(sublist)
 			else:
@@ -174,7 +172,7 @@ class Embedding(DataTransform):
 	def testing(self):
 		return self.upsample(self.flatten(self.generator("testing.wordvectors", self.benign_spectre_test())))
 
-class Embedding2(Embedding):
+class SpectreEmbedding(Embedding):
 	"""
 	Samples 60,000 Observations
 	50,000 Training
@@ -197,14 +195,30 @@ class Embedding2(Embedding):
 			else: targets.append("benign")
 		return self.encoder(targets)
 	
-	def pickle_save(self, data, file_name):
+	def pickle(self, data, file_name):
 		with open(file_name, 'wb') as file:
 			pickle.dump(data, file)
 
-	def pickle_load(self, data):
+	def unpickle(self, data):
 		with open(data, "rb") as file:
 			loaded = pickle.load(file)
 		return loaded
+	
+	def pad(self, embeddings):
+		zeros = np.zeros((32,), dtype=np.float32)
+		out  = []
+		max_length = max(len(embedding) for embedding in embeddings)
+		for embedding in embeddings:
+			if len(embedding) < max_length:
+				embedding.extend([0.0] * (max_length - len(embedding)))
+		for embedding in embeddings:
+			temp = []
+			for vector in embedding:
+				if not type(vector).__module__ == np.__name__:
+					temp.append(zeros)
+				else: temp.append(vector)
+			out.append(temp)
+		return out
 	
 	def train_val_set(self) -> Tuple[List[float], List[float]]:
 		out_train, out_val = ([] for _ in range(2))
@@ -224,14 +238,26 @@ class Embedding2(Embedding):
 		self.model(out_train, "training_set_vectors.wordvectors")
 		self.model(out_val, "validation_set_vectors.wordvectors")
 		
-		self.pickle_save(out_train, "training_set.pickle")
-		self.pickle_save(out_val, "validation_set.pickle")
+		self.pickle(out_train, "training_set.pickle")
+		self.pickle(out_val, "validation_set.pickle")
 
-		self.pickle_save(self.encoder(out_train, self.BENIGN_NUM),"training_set_labels.pickle")
-		self.pickle_save(self.encoder(out_val, self.BENIGN_NUM_VAL),"validation_set_labels.pickle")
+		self.pickle(self.encoder(out_train, self.BENIGN_NUM),"training_set_labels.pickle")
+		self.pickle(self.encoder(out_val, self.BENIGN_NUM_VAL),"validation_set_labels.pickle")
 
-		training_embedding = self.generator(self.pickle_load("training_set_vectors.wordvectors"), out_train)
-		validation_embedding = self.generator(self.pickle_load("validation_set_vectors.wordvectors"), out_val)
+		training_embedding = self.generator(self.unpickle("training_set_vectors.wordvectors"), out_train)
+		validation_embedding = self.generator(self.unpickle("validation_set_vectors.wordvectors"), out_val)
 
-		self.pickle_save(training_embedding,"training_embedding.pickle")
-		self.pickle_save(validation_embedding,"validation_embedding.pickle")
+		self.pickle(training_embedding,"training_embedding.pickle")
+		self.pickle(validation_embedding,"validation_embedding.pickle")
+
+	def data_transfrom(self):
+		training_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "training_embedding.pickle")))
+		training_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "training_set_labels.pickle"))
+
+		validation_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_embedding.pickle")))
+		validation_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_labels.pickle"))
+		
+		testing_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "testing_embedding.pickle")))
+		testing_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "testing_labels.pickle"))
+
+		return training_embeddings, training_labels, validation_embeddings, validation_labels, testing_embeddings, testing_labels

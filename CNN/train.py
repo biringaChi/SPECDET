@@ -1,18 +1,19 @@
 import os
-from typing import List, Tuple
 import torch
 import time
 from tqdm import tqdm
 import numpy as np
-import torch.nn as nn
-from data_prep import Embedding2
-import torch.optim as optim
-from torch.utils.data import TensorDataset, DataLoader
 from cnn import CNN
+import torch.nn as nn
+import torch.optim as optim
+from typing import List, Tuple
+from torch.functional import Tensor
+from data_prep import SpectreEmbedding
+from torch.utils.data import TensorDataset, DataLoader
 
 torch.manual_seed(60)
 
-class Train(Embedding2):
+class TrainTest(SpectreEmbedding):
 	"""
 	Trains the Convolutional Neural Network (CNN)
 	Args: 
@@ -21,26 +22,38 @@ class Train(Embedding2):
 	"""
 	def __init__(self) -> None:
 		super().__init__()
-		self.CNN = CNN()
+		self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+		self.CNN = CNN().to(self.DEVICE)
 		self.CRITERION = nn.BCELoss()
-		self.OPTIMIZER = optim.SGD(self.CNN.parameters(), lr=0.001, momentum=0.9)
+		self.OPTIMIZER = optim.Adam(self.CNN.parameters(), lr=0.0002, betas=(0.5, 0.999))
 		self.EPOCHS = 10
 		self.VALIDATION_LOSS_MIN = np.inf
 		self.TRAIN_LOSSES, self.TRAIN_ACCURACIES, self.VALIDATION_LOSSES, self.VALIDATION_ACCURACIES = ([] for _ in range(4))
 		self.EPOCH_TRAIN_LOSSES, self.EPOCH_TRAIN_ACCURACIES, self.EPOCH_VALIDATION_LOSSES, self.EPOCH_VALIDATION_ACCURACIES = ([] for _ in range(4))
-		self.METRICS = {}
+	
+	def normalize_tensor(self, tensor):
+		tensor_transform = tensor.reshape(-1, 2)
+		tensor_transform -= tensor_transform.mean(axis = 0)
+		tensor_transform /= tensor_transform.std(axis = 0)
+		return tensor_transform.reshape(tensor.shape) 
 
-	def training_set(self) -> Tuple[List, List]:
-		# load data, flatten and upsample
-		# convert to tensor and then normalize
-		# return 2 tensor (x, y)
-		pass
+	def training_set(self) -> Tuple[Tensor, Tensor]:
+		training_embeddings, training_labels, _, _, _, _ = self.data_transfrom()
+		training_x = self.normalize_tensor(torch.as_tensor(training_embeddings))
+		training_y = torch.as_tensor(training_labels)
+		return training_x, training_y
 
-	def validation_set(self) -> Tuple[List, List]:
-		pass
+	def validation_set(self) -> Tuple[Tensor, Tensor]:
+		_, _, validation_embeddings, validation_labels, _, _ = self.data_transfrom()
+		validation_x = self.normalize_tensor(torch.as_tensor(validation_embeddings))
+		validation_y = torch.as_tensor(validation_labels)
+		return validation_x, validation_y
 
 	def test_set(self) -> Tuple[List, List]:
-		pass
+		_, _, _, _, testing_embeddings, testing_labels = self.data_transfrom()
+		test_x = self.normalize_tensor(torch.as_tensor(testing_embeddings))
+		test_y = torch.as_tensor(testing_labels)
+		return test_x, test_y
 
 	def data_loader(self):
 		training_x, training_y = self.training_set()
@@ -57,7 +70,7 @@ class Train(Embedding2):
 		total = 0
 		_, _, loader_test = self.data_loader()
 		for batch in loader_test:
-			observations, labels = batch
+			observations, labels = batch.to(self.DEVICE)
 			outputs = self.CNN(observations)
 			_, predicted = torch.max(outputs.data, dim = 1)
 			total += labels.size(0)
@@ -74,7 +87,7 @@ class Train(Embedding2):
 
 			self.CNN.train()
 			for idx, batch in tqdm(enumerate(loader_train, 0)):
-				observations, labels = batch
+				observations, labels = batch.to(self.DEVICE)
 				self.OPTIMIZER.zero_grad()
 				outputs = self.CNN(observations)
 				loss = self.CRITERION(outputs, labels)
@@ -93,7 +106,7 @@ class Train(Embedding2):
 
 			self.CNN.eval()
 			for idx, batch in tqdm(enumerate(loader_val, 0)):
-				observations, labels = batch
+				observations, labels = batch.to(self.DEVICE)
 				outputs = self.CNN(observations)
 				loss = self.CRITERION(outputs, labels)
 				validation_loss += loss.item()
@@ -118,16 +131,29 @@ class Train(Embedding2):
 		_, _, loader_test = self.data_loader()
 		with torch.no_grad():
 			for batch in loader_test:
-				observations, labels = batch
+				observations, labels = batch.to(self.DEVICE)
 				outputs = self.CNN(observations)
 				_, predicted = torch.max(outputs.data, 1)
 				total += labels.size(0)
 				correct += (predicted == labels).sum().item()
 				acc = 100 * (correct/total)
-			return(f"Current best test: {acc}")
+			return(f"Current best test accuracy: {acc}")
 	
 	def save_metrics(self):
-		pass
+		self.TRAIN_LOSSES, self.TRAIN_ACCURACIES, self.VALIDATION_LOSSES, self.VALIDATION_ACCURACIES 
+		metrics = {
+			"TRAIN_LOSSES" : self.TRAIN_LOSSES, 
+			"TRAIN_ACCURACIES" : self.TRAIN_ACCURACIES,
+			"VALIDATION_LOSSES" : self.VALIDATION_LOSSES,
+			"VALIDATION_ACCURACIES" : self.VALIDATION_ACCURACIES,
+			"TRAIN_LOSSES" : self.TRAIN_LOSSES,
+			"TRAIN_ACCURACIES" : self.TRAIN_ACCURACIES,
+			"VALIDATION_LOSSES" : self.VALIDATION_LOSSES,
+			"VALIDATION_ACCURACIES" : self.VALIDATION_ACCURACIES
+		}
+		self.pickle(metrics, os.getcwd() + "/CNN/" + "metrics.pickle")
 
 if __name__ == "__main__":
-	pass
+	TrainTest().train_eval()
+	TrainTest().test()
+	TrainTest().save_metrics()
