@@ -159,3 +159,6 @@ model_exp.py
 generated_vec.pickle 
 training_embedding_padded.pickle
 validation_embedding.pickle
+
+# model
+model.pth
