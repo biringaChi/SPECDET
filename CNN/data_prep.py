@@ -6,12 +6,12 @@ from typing import Dict, List, Sequence, Set, Text, Tuple, Union
 
 class HandleSpectreBenignData:
 	"""
-	Handles spectre and benign data
+	DataHandler: Handles spectre and benign data.
 	Args: 
-		benign_train: A string representing training samples of benign assembly code
-		spectre_train: A string representating training samples of spectre gadget 
-		benign_test: A string representing testing samples of benign assembly code
-		spectre_test: A string representating testing samples of spectre gadget 
+		benign_train: A string representing training samples of benign assembly code.
+		spectre_train: A string representating training samples of spectre gadget. 
+		benign_test: A string representing testing samples of benign assembly code.
+		spectre_test: A string representating testing samples of spectre gadget. 
 	"""
 	def __init__(
 		self,
@@ -71,7 +71,12 @@ class HandleSpectreBenignData:
 		return ["spectre" for _ in range(self.__len__(self.spectre_test()))]
 
 class DataTransform(HandleSpectreBenignData):
-	"""Transforms handled data into ML algorithm shape"""
+	"""
+	Data Transform: transforms handled data into DNN algorithmic shape.
+    Args: 
+		spectre: A list of strings representing raw spectre vulnerable code snippets.
+		benign: A list of strings representing raw assembly code snippets.
+	"""
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -89,7 +94,6 @@ class DataTransform(HandleSpectreBenignData):
 	
 	def encoder(self, data_sample, sample_val, data = None) -> List[int]:
 		out = []
-
 		if data is not None:
 			for target in data:
 				if target == "benign":
@@ -104,7 +108,7 @@ class DataTransform(HandleSpectreBenignData):
 
 	def benign_spectre_train(self) -> List[List[str]]:
 		benign_spectre_train = self.benign_train() + self.spectre_train()
-		return [data.split() for data in self.wrangle(benign_spectre_train)]
+		return  [data.split() for data in self.wrangle(benign_spectre_train)]
 
 	def benign_spectre_train_targets(self) -> List[int]:
 		benign_spectre_train_targets = self.benign_train_targets() + self.spectre_train_targets()
@@ -119,8 +123,11 @@ class DataTransform(HandleSpectreBenignData):
 		return self.encoder(benign_spectre_test_targets)
 
 class Embedding(DataTransform):
-	"""Generates embeddings"""
-
+	"""
+	Neural Embeddings: generates neural embeddings for SpectreCNN.
+	Arg: transformed spectre and benign data.
+	"""
+	
 	def __init__(self) -> None:
 		super().__init__()
 	
@@ -128,7 +135,7 @@ class Embedding(DataTransform):
 		vec = Word2Vec(sentences = data, min_count = 1, vector_size = 32).wv
 		vec.save(os.getcwd() + "/CNN/" + vec_name)
 
-	def generator(self, vec, data) -> List[List[float]]:
+	def embed_lookup(self, vec, data) -> List[List[float]]:
 		vec_dict = {}
 		model = KeyedVectors.load(os.getcwd() + "/CNN/" + vec, mmap = "r")
 		for key in model.key_to_index.keys():
@@ -165,28 +172,28 @@ class Embedding(DataTransform):
 				out.append(sublist)
 		return out
 	
-	def training(self):
-		return self.upsample(self.flatten(self.generator("training.wordvectors", self.benign_spectre_train())))
+	def training(self) -> np.ndarray:
+		return self.upsample(self.flatten(self.embed_lookup("training.wordvectors", self.benign_spectre_train())))
 
-	def testing(self):
-		return self.upsample(self.flatten(self.generator("testing.wordvectors", self.benign_spectre_test())))
+	def testing(self) -> np.ndarray:
+		return self.upsample(self.flatten(self.embed_lookup("testing.wordvectors", self.benign_spectre_test())))
 
 class SpectreEmbedding(Embedding):
 	"""
-	Samples 60,000 Observations
-	49,000 Training
-	1,000 Validation
-	10,000 Testing
+	SpectreEmbedding: samples 60,000 observations.
+	49,000 Training.
+	1,000 Validation.
+	10,000 Testing.
 	"""
 	def __init__(self) -> None:
 		super().__init__()
-		self.BENIGN_NUM = 1481
-		self.BENIGN_NUM_VAL = 100
-		self.BENIGN_NUM_TEST = 396
-		self.SPECTRE_NUM = 47519
-		self.SPECTRE_NUM_TEST = 9604
-		self.SAMPLE = 1000
-		self.VECTORS = "benign_spectre_train_50K.wordvectors"
+		self.BENIGN_NUM: int = 1481
+		self.BENIGN_NUM_VAL: int = 100
+		self.BENIGN_NUM_TEST: int = 396
+		self.SPECTRE_NUM: int = 47519
+		self.SPECTRE_NUM_TEST: int = 9604
+		self.SAMPLE: int = 1000
+		self.VECTORS: str = "benign_spectre_train_50K.wordvectors"
 	
 	def get_targets(self, data, split_val) -> List[int]:
 		targets = []
@@ -205,10 +212,10 @@ class SpectreEmbedding(Embedding):
 			loaded = pickle.load(file)
 		return loaded
 	
-	def pad(self, embeddings):
-		zeros = np.zeros((32,), dtype=np.float64)
+	def pad(self, embeddings) -> np.ndarray:
+		zeros: np.ndarray = np.zeros((32,), dtype=np.float64)
 		out  = []
-		max_length = max(self.__len__(embedding) for embedding in embeddings)
+		max_length: int = max(self.__len__(embedding) for embedding in embeddings)
 		for embedding in embeddings:
 			if self.__len__(embedding) < max_length:
 				embedding.extend([0.0] * (max_length - self.__len__(embedding)))
@@ -221,11 +228,11 @@ class SpectreEmbedding(Embedding):
 			out.append(temp)
 		return out
 	
-	def train_val_test_set(self) -> Tuple[List[float], List[float]]:
+	def train_val_test_set(self) -> np.ndarray:
 		out_train, out_val, out_test = ([] for _ in range(3))
-		training_set = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
-		validation_set = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
-		test_set = [data.split() for data in self.wrangle(self.benign_test() + self.spectre_test()[:self.SPECTRE_NUM_TEST])]
+		training_set: List[str] = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
+		validation_set: List[str] = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]
+		test_set: List[str] = [data.split() for data in self.wrangle(self.benign_test() + self.spectre_test()[:self.SPECTRE_NUM_TEST])]
 
 		for data_train, data_val, data_test in zip(training_set, validation_set, test_set):
 			if self.__len__(data_train) > self.SAMPLE:
@@ -254,22 +261,22 @@ class SpectreEmbedding(Embedding):
 		self.pickle(self.encoder(out_test, self.BENIGN_NUM_TEST),"test_set_labels.pickle")
 		
 
-		training_embedding = self.generator(self.unpickle("training_set_vectors.wordvectors"), out_train)
-		validation_embedding = self.generator(self.unpickle("validation_set_vectors.wordvectors"), out_val)
-		test_embedding = self.generator(self.unpickle("test_set_vectors.wordvectors"), out_test)
+		training_embedding: np.ndarray = self.embed_lookup(self.unpickle("training_set_vectors.wordvectors"), out_train)
+		validation_embedding: np.ndarray = self.embed_lookup(self.unpickle("validation_set_vectors.wordvectors"), out_val)
+		test_embedding: np.ndarray = self.embed_lookup(self.unpickle("test_set_vectors.wordvectors"), out_test)
 
 		self.pickle(training_embedding,"training_embedding.pickle")
 		self.pickle(validation_embedding,"validation_embedding.pickle")
 		self.pickle(test_embedding,"test_embedding.pickle")
 
-	def data_transfrom(self):
-		training_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "training_embedding.pickle")))
-		training_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "training_set_labels.pickle"))
+	def data_transfrom(self) -> np.ndarray:
+		training_embeddings: np.ndarray[float] =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "training_embedding.pickle")))
+		training_labels: np.ndarray[int] =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "training_set_labels.pickle"))
 
-		validation_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_embedding.pickle")))
-		validation_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_set_labels.pickle"))
+		validation_embeddings: np.ndarray[float] =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_embedding.pickle")))
+		validation_labels: np.ndarray[int] = np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "validation_set_labels.pickle"))
 		
-		testing_embeddings =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "test_embedding.pickle")))
-		testing_labels =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "test_set_labels.pickle"))
+		testing_embeddings: np.ndarray[float] =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "test_embedding.pickle")))
+		testing_labels: np.ndarray[int] =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "test_set_labels.pickle"))
 
 		return training_embeddings, training_labels, validation_embeddings, validation_labels, testing_embeddings, testing_labels

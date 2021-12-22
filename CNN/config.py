@@ -1,8 +1,9 @@
 from typing import List, Tuple
 
-
 class Config:
-	"""SpectreCNN configuration arguments"""
+	"""
+	SpectreCNN configuration arguments
+	"""
 	
 	def __init__(
 				 self, 

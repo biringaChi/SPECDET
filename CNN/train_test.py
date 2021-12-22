@@ -71,7 +71,7 @@ class TrainTest(SpectreEmbedding):
 
 			self.SPECTRE_CNN.train()
 			for idx, batch in tqdm(enumerate(loader_train, 0)):
-				embeddings, labels = batch
+				embeddings, labels = batch.t
 				self.OPTIMIZER.zero_grad()
 
 				outputs = self.SPECTRE_CNN(embeddings.unsqueeze(1).float())
@@ -121,7 +121,7 @@ class TrainTest(SpectreEmbedding):
 				accurate_predictions += np.sum(np.squeeze(predictions.numpy()))
 			return(f"Test Accuracy: {accurate_predictions / self.__len__(loader_test.dataset) * 100} \nTest Loss{np.mean(test_losses)}")
 	
-	def save_metrics(self):
+	def store_metrics(self):
 		self.TRAIN_LOSSES, self.TRAIN_ACCURACIES, self.VALIDATION_LOSSES, self.VALIDATION_ACCURACIES 
 		metrics = {
 			"train_losses" : self.TRAIN_LOSSES, 
@@ -140,4 +140,4 @@ if __name__ == "__main__":
 	train_test = TrainTest()
 	train_test.train()
 	train_test.test()
-	train_test.save_metrics()
+	train_test.store_metrics()
