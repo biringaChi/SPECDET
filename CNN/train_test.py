@@ -2,9 +2,9 @@ import time
 import torch
 import argparse
 import numpy as np
+import torch.nn as nn
 from tqdm import tqdm
 from config import Config
-import torch.nn as nn
 import torch.optim as optim
 from spectre_cnn import SpectreCNN
 from data_prep import SpectreEmbedding
@@ -13,10 +13,10 @@ from torch.utils.data import TensorDataset, DataLoader
 torch.manual_seed(100)
 
 CONFIG = Config()
-parser = argparse.ArgumentParser(description="Trains the SpectreCNN model")
+parser = argparse.ArgumentParser(description = "Trains the SpectreCNN model")
+parser.add_argument('--epochs', type = int, default = CONFIG.EPOCHS, help = "Number of training cycles")
 parser.add_argument('--lr', type = float, default = CONFIG.LEARNING_RATE, help = "Adam optimizer learning rate")
 parser.add_argument('--batch_size', type = int, default = CONFIG.BATCH_SIZE, help = "Number of samples propagated through SpectreCNN")
-parser.add_argument('--epochs', type = int, default = CONFIG.EPOCHS, help = "Number of training cycles")
 args = parser.parse_args()
 
 class TrainTest(SpectreEmbedding):
@@ -53,11 +53,11 @@ class TrainTest(SpectreEmbedding):
 	
 	def accuracy(self):
 		accurate_predictions = 0
-		_, _, loader_test = self.data_loader()
+		_, _, loader_test = self.data_loader().to(self.DEVICE)
 		self.SPECTRE_CNN.eval()
 		for embeddings, labels in loader_test:
-			outputs = self.SPECTRE_CNN(embeddings.unsqueeze(1).float())
-			predictions = torch.round(outputs.squeeze()).eq(labels.float().view_as(torch.round(outputs.squeeze())))
+			outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
+			predictions = torch.round(outputs.squeeze()).eq(labels.to(self.DEVICE).float().view_as(torch.round(outputs.squeeze())))
 			accurate_predictions += np.sum(np.squeeze(predictions.numpy()))
 		return accurate_predictions / self.__len__(loader_test.dataset) * 100
 
@@ -71,11 +71,11 @@ class TrainTest(SpectreEmbedding):
 
 			self.SPECTRE_CNN.train()
 			for idx, batch in tqdm(enumerate(loader_train, 0)):
-				embeddings, labels = batch.t
+				embeddings, labels = batch
 				self.OPTIMIZER.zero_grad()
 
-				outputs = self.SPECTRE_CNN(embeddings.unsqueeze(1).float())
-				loss = self.CRITERION(outputs.squeeze(), labels.float())
+				outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
+				loss = self.CRITERION(outputs.squeeze(), labels.to(self.DEVICE).float())
 				loss.backward()
 				self.OPTIMIZER.step()
 				training_loss.append(loss.item())
@@ -91,8 +91,8 @@ class TrainTest(SpectreEmbedding):
 			self.SPECTRE_CNN.eval()
 			for idx, batch in tqdm(enumerate(loader_val, 0)):
 				embeddings, labels = batch
-				outputs = self.SPECTRE_CNN(embeddings.unsqueeze(1).float())
-				loss = self.CRITERION(outputs.squeeze(), labels.float())
+				outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
+				loss = self.CRITERION(outputs.squeeze(), labels.to(self.DEVICE).float())
 				validation_loss.append(loss.item())
 				if idx % 10 == 0:
 					print(f"Validation Loss = {loss.item()}")
@@ -114,21 +114,19 @@ class TrainTest(SpectreEmbedding):
 		_, _, loader_test = self.data_loader()
 		with torch.no_grad():
 			for embeddings, labels in loader_test:
-				outputs = self.SPECTRE_CNN(embeddings.unsqueeze(1).float())
-				test_loss = self.CRITERION(outputs.squeeze(), labels.float())
+				outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
+				test_loss = self.CRITERION(outputs.squeeze(), labels.to(self.DEVICE).float())
 				test_losses.append(test_loss.item())
-				predictions = torch.round(outputs.squeeze()).eq(labels.float().view_as(torch.round(outputs.squeeze())))
+				predictions = torch.round(outputs.squeeze()).eq(labels.to(self.DEVICE).float().view_as(torch.round(outputs.squeeze())))
 				accurate_predictions += np.sum(np.squeeze(predictions.numpy()))
 			return(f"Test Accuracy: {accurate_predictions / self.__len__(loader_test.dataset) * 100} \nTest Loss{np.mean(test_losses)}")
 	
 	def store_metrics(self):
-		self.TRAIN_LOSSES, self.TRAIN_ACCURACIES, self.VALIDATION_LOSSES, self.VALIDATION_ACCURACIES 
 		metrics = {
 			"train_losses" : self.TRAIN_LOSSES, 
 			"train_accuracies" : self.TRAIN_ACCURACIES,
 			"validation_losses" : self.VALIDATION_LOSSES,
 			"validation_accuracies" : self.VALIDATION_ACCURACIES,
-
 			"epoch_train_losses" : self.EPOCH_TRAIN_LOSSES,
 			"epoch_train_accuracies" : self.EPOCH_TRAIN_ACCURACIES,
 			"epoch_validation_losses" : self.EPOCH_VALIDATION_LOSSES,

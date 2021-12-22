@@ -7,7 +7,7 @@ class Config:
 	
 	def __init__(
 				 self, 
-				 epochs: int = 2, 
+				 epochs: int = 5, 
 				 learning_rate: float = 0.001, 
 				 betas: Tuple[float] = (0.5, 0.999),
 				 label_num: int = 1, 

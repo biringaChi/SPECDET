@@ -35,7 +35,7 @@ class HandleSpectreBenignData:
 
 	def get_assembly(self, path_arg) -> List[str]:
 		assembly = []
-		for (root, _, files) in os.walk(path_arg):
+		for root, _, files in os.walk(path_arg):
 			for file in files:
 				if file.endswith(".s"):
 					temp = os.path.join(root, file)
@@ -55,7 +55,7 @@ class HandleSpectreBenignData:
 	def spectre_train(self):
 		return self.get_assembly(self.SPECTRE_TRAIN_PATH)
 
-	def spectre_train_targets(self):
+	def spectre_train_targets(self) -> List[str]:
 		return ["spectre" for _ in range(self.__len__(self.spectre_train()))]
 	
 	def benign_test(self) -> List[str]:
@@ -135,19 +135,19 @@ class Embedding(DataTransform):
 		vec = Word2Vec(sentences = data, min_count = 1, vector_size = 32).wv
 		vec.save(os.getcwd() + "/CNN/" + vec_name)
 
-	def embed_lookup(self, vec, data) -> List[List[float]]:
+	def embed_lookup(self, vec, data) -> np.ndarray:
 		vec_dict = {}
 		model = KeyedVectors.load(os.getcwd() + "/CNN/" + vec, mmap = "r")
 		for key in model.key_to_index.keys():
 			vec_dict[key] = model[key]
-		node_vecs = []
-		for node_vec in data:
+		out = []
+		for embeds in data:
 			temp = []
-			for node in node_vec:
-				if node in vec_dict:
-					temp.append(vec_dict[node])
-			node_vecs.append(temp)
-		return node_vecs
+			for embed in embeds:
+				if embed in vec_dict:
+					temp.append(vec_dict[embed])
+			out.append(temp)
+		return out
 
 	def flatten(self, data) -> List[float]:
 		out = []
@@ -193,7 +193,6 @@ class SpectreEmbedding(Embedding):
 		self.SPECTRE_NUM: int = 47519
 		self.SPECTRE_NUM_TEST: int = 9604
 		self.SAMPLE: int = 1000
-		self.VECTORS: str = "benign_spectre_train_50K.wordvectors"
 	
 	def get_targets(self, data, split_val) -> List[int]:
 		targets = []
@@ -255,7 +254,7 @@ class SpectreEmbedding(Embedding):
 		self.pickle(out_train, "training_set.pickle")
 		self.pickle(out_val, "validation_set.pickle")
 		self.pickle(out_test, "test_set.pickle")
-
+		
 		self.pickle(self.encoder(out_train, self.BENIGN_NUM),"training_set_labels.pickle")
 		self.pickle(self.encoder(out_val, self.BENIGN_NUM_VAL),"validation_set_labels.pickle")
 		self.pickle(self.encoder(out_test, self.BENIGN_NUM_TEST),"test_set_labels.pickle")
