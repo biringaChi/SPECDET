@@ -7,7 +7,7 @@ from tqdm import tqdm
 from config import Config
 import torch.optim as optim
 from spectre_cnn import SpectreCNN
-from data_prep import SpectreEmbedding
+from spectre_embed import SpectreEmbedding
 from torch.utils.data import TensorDataset, DataLoader
 
 torch.manual_seed(100)
@@ -34,7 +34,6 @@ class TrainTest(SpectreEmbedding):
 		self.SPECTRE_CNN = SpectreCNN().to(self.DEVICE)
 		self.CRITERION = nn.BCELoss()
 		self.OPTIMIZER = optim.Adam(self.SPECTRE_CNN.parameters(), lr = args.lr, betas = CONFIG.BETAS)
-		self.VALIDATION_LOSS_MIN = np.inf
 		self.TRAIN_LOSSES, self.TRAIN_ACCURACIES, self.VALIDATION_LOSSES, self.VALIDATION_ACCURACIES = ([] for _ in range(4))
 		self.EPOCH_TRAIN_LOSSES, self.EPOCH_TRAIN_ACCURACIES, self.EPOCH_VALIDATION_LOSSES, self.EPOCH_VALIDATION_ACCURACIES = ([] for _ in range(4))
 	
@@ -53,7 +52,7 @@ class TrainTest(SpectreEmbedding):
 	
 	def accuracy(self):
 		accurate_predictions = 0
-		_, _, loader_test = self.data_loader().to(self.DEVICE)
+		_, _, loader_test = self.data_loader()
 		self.SPECTRE_CNN.eval()
 		for embeddings, labels in loader_test:
 			outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
@@ -79,7 +78,7 @@ class TrainTest(SpectreEmbedding):
 				loss.backward()
 				self.OPTIMIZER.step()
 				training_loss.append(loss.item())
-				if idx % 100 == 0: 
+				if idx % 50 == 0: 
 					print(f"Training Loss = {loss.item()}")
 					self.TRAIN_LOSSES.append(loss.item())
 					print(f"Training Accuracy = {self.accuracy()}")
@@ -119,7 +118,7 @@ class TrainTest(SpectreEmbedding):
 				test_losses.append(test_loss.item())
 				predictions = torch.round(outputs.squeeze()).eq(labels.to(self.DEVICE).float().view_as(torch.round(outputs.squeeze())))
 				accurate_predictions += np.sum(np.squeeze(predictions.numpy()))
-			return(f"Test Accuracy: {accurate_predictions / self.__len__(loader_test.dataset) * 100} \nTest Loss{np.mean(test_losses)}")
+			return(f"Average Test Accuracy: {accurate_predictions / self.__len__(loader_test.dataset) * 100} \nAverage Test Loss{np.mean(test_losses)}")
 	
 	def store_metrics(self):
 		metrics = {
@@ -133,6 +132,7 @@ class TrainTest(SpectreEmbedding):
 			"epoch_validation_accuracies" : self.EPOCH_VALIDATION_ACCURACIES
 		}
 		self.pickle(metrics, "./metrics.pickle")
+
 
 if __name__ == "__main__":
 	train_test = TrainTest()

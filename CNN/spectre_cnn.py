@@ -38,6 +38,7 @@ class SpectreCNN(nn.Module):
             nn.LeakyReLU(),
             nn.AdaptiveMaxPool2d(self.CONFIG.MAX_POOL)
         )
+
         self.fc1 = nn.Linear(self.CONFIG.IN_FEATURES * self.CONFIG.IN_FEATURES, self.CONFIG.OUT_FEATURES)
         self.fc2 = nn.Linear(self.CONFIG.OUT_FEATURES, self.CONFIG.LABEL_NUM)
         

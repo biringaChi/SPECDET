@@ -161,4 +161,9 @@ training_embedding_padded.pickle
 validation_embedding.pickle
 
 # model
-model.pth
+*.pth
+*.pickle
+
+# openssl
+openssl
+SpecFuzz
