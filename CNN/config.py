@@ -15,7 +15,7 @@ class Config:
 				 out_channels: int = 1, 
 				 in_features: int = 10, 
 				 out_features: int = 300,
-				 drop_out_prob: float = 0.25,
+				 drop_out_prob: float = 0.5,
 				 kernel_size: int = 3, 
 				 stride: int = 1, 
 				 padding: List[Tuple] = [(1, 0), (2, 0), (3, 0)], 

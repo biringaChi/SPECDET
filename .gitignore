@@ -167,3 +167,9 @@ validation_embedding.pickle
 # openssl
 openssl
 SpecFuzz
+
+# Transformers
+Transformers
+
+# Metrics
+metrics

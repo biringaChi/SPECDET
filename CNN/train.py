@@ -19,7 +19,7 @@ parser.add_argument('--lr', type = float, default = CONFIG.LEARNING_RATE, help =
 parser.add_argument('--batch_size', type = int, default = CONFIG.BATCH_SIZE, help = "Number of samples propagated through SpectreCNN")
 args = parser.parse_args()
 
-class TrainTest(SpectreEmbedding):
+class Train(SpectreEmbedding):
 	"""
 	Trains the Convolutional Neural Network (CNN) Architecture.
 	Args: 
@@ -106,19 +106,6 @@ class TrainTest(SpectreEmbedding):
 			print(f"Epoch: {epoch}")
 			print(f"Finshed training. \nTime to train: {time.time() - start_time} seconds")
 		torch.save(self.SPECTRE_CNN.state_dict(), "./model.pth")
-
-	def test(self):
-		test_losses = [] 
-		accurate_predictions = 0
-		_, _, loader_test = self.data_loader()
-		with torch.no_grad():
-			for embeddings, labels in loader_test:
-				outputs = self.SPECTRE_CNN(embeddings.to(self.DEVICE).unsqueeze(1).float())
-				test_loss = self.CRITERION(outputs.squeeze(), labels.to(self.DEVICE).float())
-				test_losses.append(test_loss.item())
-				predictions = torch.round(outputs.squeeze()).eq(labels.to(self.DEVICE).float().view_as(torch.round(outputs.squeeze())))
-				accurate_predictions += np.sum(np.squeeze(predictions.numpy()))
-			return(f"Average Test Accuracy: {accurate_predictions / self.__len__(loader_test.dataset) * 100} \nAverage Test Loss{np.mean(test_losses)}")
 	
 	def store_metrics(self):
 		metrics = {
@@ -132,10 +119,3 @@ class TrainTest(SpectreEmbedding):
 			"epoch_validation_accuracies" : self.EPOCH_VALIDATION_ACCURACIES
 		}
 		self.pickle(metrics, "./metrics.pickle")
-
-
-if __name__ == "__main__":
-	train_test = TrainTest()
-	train_test.train()
-	train_test.test()
-	train_test.store_metrics()

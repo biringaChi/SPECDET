@@ -278,4 +278,4 @@ class SpectreEmbedding(Embedding):
 		testing_embeddings: np.ndarray[float] =  np.asarray(self.pad(self.unpickle(os.getcwd() + "/CNN/data/" + "test_embedding.pickle")))
 		testing_labels: np.ndarray[int] =  np.asarray(self.unpickle(os.getcwd() + "/CNN/data/" + "test_set_labels.pickle"))
 
-		return training_embeddings[:5000], training_labels[:5000], validation_embeddings, validation_labels, testing_embeddings[:1500], testing_labels[:1500]
+		return training_embeddings[:3000], training_labels[:3000], validation_embeddings, validation_labels, testing_embeddings[:1000], testing_labels[:1000]
