@@ -173,3 +173,7 @@ Transformers
 
 # Metrics
 metrics
+
+# Benchmark: OpenSSL: crypto
+crypto
+ex.c
