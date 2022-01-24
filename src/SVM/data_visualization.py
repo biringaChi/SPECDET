@@ -8,7 +8,7 @@ import pandas as pd
 # cwd = os.getcwd()  # Get the current working directory (cwd)
 # files = os.listdir(cwd)  # Get all the files in that directory
 # print("Files in %r: %s" % (cwd, files))
-csv_file = 'datasets/cpu_processes/cpu_states.csv'
+csv_file = '/home/designa/Desktop/SpecDet/datasets/cpu_processes/cpu_states.csv' # change this to a the full path to your dataset using "pwd"
 
 dataset=pd.read_csv(csv_file)
 print(dataset['class'].value_counts(dropna=False))
@@ -29,7 +29,7 @@ frequencies = [M,B]
 # so for consistency I create a series from the list.
 freq_series = pd.Series(frequencies)
 
-x_labels = ['B','M']
+x_labels = ['M','B']
 
 # Plot the figure.
 plt.figure(figsize=(12, 8))

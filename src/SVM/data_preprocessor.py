@@ -19,9 +19,8 @@ def read_json():
     # Python program to read
     # json file
     # Opening JSON file
-    json_file = 'datasets/cpu_processes/dataset_100ms.json'
+    json_file = './datasets/cpu_processes/dataset_100ms.json'
     f = open(json_file,)
-
     
     # returns JSON object as
     # a dictionary

@@ -152,7 +152,7 @@ spectre_train_temp
 # Vectors
 *.wordvectors
 *.npy
-*.csv
+#*.csv
 
 # Exp
 model_exp.py
