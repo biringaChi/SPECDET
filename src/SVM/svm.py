@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-csv_file = '../datasets/cpu_processes/cpu_states.csv'
+csv_file = '/home/designa/SpecDet/datasets/cpu_processes/cpu_states.csv' # change me , use your own full path. use pwd within the cpu process
 
 
 dataset=pd.read_csv(csv_file)
