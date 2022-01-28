@@ -152,7 +152,7 @@ spectre_train_temp
 # Vectors
 *.wordvectors
 *.npy
-#*.csv
+# *.csv
 
 # Exp
 model_exp.py
@@ -162,7 +162,7 @@ validation_embedding.pickle
 
 # model
 *.pth
-*.pickle
+# *.pickle
 
 # openssl
 openssl
@@ -177,3 +177,6 @@ metrics
 # Benchmark: OpenSSL: crypto
 crypto
 ex.c
+
+# Data
+metrics.pickle
