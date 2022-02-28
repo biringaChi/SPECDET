@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-csv_file = '../datasets/cpu_processes/cpu_states.csv'
+csv_file = '../../datasets/cpu_processes/cpu_states.csv'
 
 
 dataset=pd.read_csv(csv_file)
