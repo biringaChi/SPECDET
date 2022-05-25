@@ -14,7 +14,7 @@ class SpectreCNN(nn.Module):
         in_features: An integer representing the size of input embedding sample.
         out_features: An integer representing the size of output embedding sample.
         drop_out_prob: A float representing a probability of an element to be zeroed.
-        labe_num: An integer representing the number of target labels.
+        label_num: An integer representing the number of target labels.
     """
     
     def __init__(self):

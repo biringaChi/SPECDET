@@ -9,7 +9,7 @@ plt.style.use("ggplot")
 alpha = 0.2
 markersize = 5
 figure, ax = plt.subplots()
-fontsize = 20
+fontsize = 30
 
 class Test(Train):
 	"""
@@ -21,7 +21,7 @@ class Test(Train):
 		super().__init__()
 
 	def load_metrics(self):
-		return SpectreEmbedding().unpickle("CNN/metrics.pickle")
+		return SpectreEmbedding().unpickle("src/CNN/metrics.pickle")
 		
 	def get_training_metrics(self):
 		metrics = self.load_metrics()
@@ -79,3 +79,7 @@ class Visualization(Test):
 		plt.yticks(fontsize = fontsize)
 		plt.tight_layout() 
 		plt.show()
+
+
+# if __name__ == "__main__":
+# 	Visualization().train_validation_loss()
