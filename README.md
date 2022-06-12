@@ -1,2 +1,2 @@
-# SpecDet
-SpecDet: Detecting Spectre Attacks through CPU Processes State and Spectre Gadgets 
+SPECDET: Fast Spectre Vulnerabilities and Attack Detection via Gadgets and CPU-Processes State
+---
