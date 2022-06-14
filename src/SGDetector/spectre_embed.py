@@ -227,6 +227,12 @@ class SpectreEmbedding(Embedding):
 			out.append(temp)
 		return out
 	
+	def generate(self):
+		return self.pad()
+
+if __name__ == "__main__":
+	SpectreEmbedding().generate()
+	
 	def train_val_test_set(self) -> np.ndarray:
 		out_train, out_val, out_test = ([] for _ in range(3))
 		training_set: List[str] = [data.split() for data in self.wrangle(self.benign_train()[:self.BENIGN_NUM] + self.spectre_train()[:self.SPECTRE_NUM])]

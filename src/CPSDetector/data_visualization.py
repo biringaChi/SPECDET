@@ -8,7 +8,8 @@ import pandas as pd
 # cwd = os.getcwd()  # Get the current working directory (cwd)
 # files = os.listdir(cwd)  # Get all the files in that directory
 # print("Files in %r: %s" % (cwd, files))
-csv_file = '/home/designa/Desktop/SpecDet/datasets/cpu_processes/cpu_states.csv' # change this to a the full path to your dataset using "pwd"
+# csv_file = '/home/designa/Desktop/SpecDet/datasets/cpu_processes/cpu_states.csv' # change this to a the full path to your dataset using "pwd"
+csv_file = "/Users/Gabriel/Projects/SPECDET/src/CPSDetector/cpu_states.csv"
 
 dataset=pd.read_csv(csv_file)
 print(dataset['class'].value_counts(dropna=False))

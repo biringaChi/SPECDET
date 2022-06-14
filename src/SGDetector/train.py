@@ -119,3 +119,7 @@ class Train(SpectreEmbedding):
 			"epoch_validation_accuracies" : self.EPOCH_VALIDATION_ACCURACIES
 		}
 		self.pickle(metrics, "./metrics.pickle")
+
+
+if __name__ == "__main__":
+	Train().train()
