@@ -1,6 +1,7 @@
 import torch.nn as nn
 from config import Config
 
+
 class SpectreCNN(nn.Module):
     """
     SpectreCNN Model.

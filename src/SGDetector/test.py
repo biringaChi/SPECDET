@@ -29,6 +29,7 @@ class Test(Train):
 		validation_losses = metrics["validation_losses"][:20]
 		index = [i for i in range(len(train_losses))]
 		return index, train_losses, validation_losses
+	
 
 	def test_accuracy(self):
 		test_losses = [] 
@@ -56,8 +57,8 @@ class Test(Train):
 				prediction_metric.append(predictions.tolist())
 				labels_metric.append(labels.tolist())
 
-		labels_metric  = [i for sublist in labels_metric for i in sublist]
-		prediction_metric  = [i for sublist in prediction_metric for i in sublist]
+		labels_metric  = [i for sublist in labels_metric for i in sublist] # ytest
+		prediction_metric  = [i for sublist in prediction_metric for i in sublist] #ypred
 		precision = precision_score(labels_metric, prediction_metric)
 		recall = recall_score(labels_metric, prediction_metric)
 		f1 = f1_score(labels_metric, prediction_metric)

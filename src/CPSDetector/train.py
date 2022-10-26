@@ -55,4 +55,4 @@ print(f"Finshed training. \nTime: {time.time() - start_time} seconds")
 
 #Results and evaluations
 from sklearn.metrics import classification_report
-print(classification_report(y_test, y_predict ))
+print(classification_report(y_test, y_predict))
