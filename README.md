@@ -24,18 +24,14 @@ Official Implementation of [Short Paper: Static and Microarchitectural ML-Based 
 ### Abstract
 > Spectre intrusions exploit speculative execution design vulnerabilities in modern processors. The attacks violate the principles of isolation in programs to gain unauthorized private user information. Current state-of-the-art detection techniques utilize micro-architectural features or vulnerable speculative code to detect these threats. However, these techniques are insufficient as Spectre attacks have proven to be more stealthy with recently discovered variants that bypass current mitigation mechanisms. Side-channels generate distinct patterns in processor cache, and sensitive information leakage is dependent on source code vulnerable to Spectre attacks, where an adversary uses these vulnerabilities, such as branch prediction, which causes a data breach. Previous studies predominantly approach the detection of Spectre attacks using the microarchitectural analysis, a reactive approach. Hence, in this paper, we present the first comprehensive evaluation of static and microarchitectural analysis-assisted machine learning approaches to detect Spectre vulnerable code snippets (preventive) and Spectre attacks (reactive). We evaluate the performance trade-offs in employing classifiers for detecting Spectre vulnerabilities and attacks.
 
-<!-- ### To cite
+
+Cite
 ```
-@inproceedings{
-	ACM BibTex coming soon...
-}
-``` -->
-In the current absence of ACM, cite arxiv
-```
-@article{biringa2022short,
+@inproceedings{biringa2022short,
   title={Short Paper: Static and Microarchitectural ML-Based Approaches For Detecting Spectre Vulnerabilities and Attacks},
-  author={Biringa, Chidera and Baye, Gaspard and Kul, G{\"o}khan},
-  journal={arXiv preprint arXiv:2210.14452},
+  author={Biringa, Chidera and Gaspard, Baye and Kul, Gokhan},
+  booktitle={Proceedings of the 11th International Workshop on Hardware and Architectural Support for Security and Privacy},
+  pages={53--57},
   year={2022}
 }
 ```
